@@ -1,8 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
 
-name: Build and deploy Python app to Azure Web App - tech0-gen-9-step3-1-node-29
+name: Build and deploy Node.js app to Azure Web App - tech0-gen-9-step3-1-node-29
 
 on:
   push:
@@ -24,24 +23,8 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
-      #1
-        env:
-          NEXT_PUBLIC_API_ENDPOINT: ${{ secrets.NEXT_PUBLIC_API_ENDPOINT }}
-        run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
-
-      #2
-      - name: Copy artifact for deployment job
-        run: |
-          mkdir deploy
-          cp -r ./.next/standalone/. ./deploy
-          cp -r ./.next/static/. ./deploy/.next/static
-
       - name: Zip artifact for deployment
-        run: zip release.zip ./deploy -r #3
+        run: zip release.zip ./* -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -64,13 +47,12 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-
       
       - name: 'Deploy to Azure Web App'
-        uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'tech0-gen-9-step3-1-node-29'
           slot-name: 'Production'
-          package: ./deploy
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0F2C8FD5379042EC81A5390695FD9DA8 }}
+          package: .
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_7DCFDDDE5FD24D0A91FF276789EEB386 }}
