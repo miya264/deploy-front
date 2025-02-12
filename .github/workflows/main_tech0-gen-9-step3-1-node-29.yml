@@ -55,7 +55,7 @@ jobs:
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
-
+    
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
@@ -64,22 +64,13 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-
-      # 🔹 追加: Azure Web App を再起動
-      - name: Restart Azure Web App
-        run: az webapp restart --name tech0-gen-9-step3-1-node-29 --resource-group <RESOURCE_GROUP>
-
-      # 🔹 追加: 再起動後 30 秒待機
-      - name: Wait before deploy
-        run: sleep 30
-
-      # 🔹 デプロイ
+      
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'tech0-gen-9-step3-1-node-29'
           slot-name: 'Production'
-          package: ./deploy
+          package: ./deploy #4
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_718598C9C5AF48328C5F64B41696FD40 }}
-          clean: true  # クリーンデプロイを実施
+          clean: true  # 
