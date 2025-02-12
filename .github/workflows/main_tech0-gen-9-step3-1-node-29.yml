@@ -74,6 +74,11 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     
     steps:
+      - name: Login to Azure  # 👈 Azure ログインを追加
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
@@ -82,12 +87,17 @@ jobs:
       - name: Unzip artifact for deployment
         run: unzip release.zip
 
-      - name: 'Deploy to Azure Web App'
+      - name: Restart Azure Web App (Optional)
+        run: az webapp restart --name tech0-gen-9-step3-1-node-29 --resource-group <RESOURCE_GROUP>
+
+      - name: Wait before deploy
+        run: sleep 30
+
+      - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'tech0-gen-9-step3-1-node-29'
           slot-name: 'Production'
           package: ./deploy
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8D474A4592054E5AA100CB304021EEEA }}
           clean: true
