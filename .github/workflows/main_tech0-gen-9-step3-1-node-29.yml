@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read # This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -25,11 +25,29 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, test
+      - name: Ensure globals.css exists
+        run: |
+          if [ ! -f "src/app/globals.css" ]; then
+            echo "@tailwind base;" > src/app/globals.css
+            echo "@tailwind components;" >> src/app/globals.css
+            echo "@tailwind utilities;" >> src/app/globals.css
+          fi
+
+      - name: Install dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: Build Tailwind CSS
+        run: |
+          if [ -f "src/app/globals.css" ]; then
+            npx tailwindcss -i src/app/globals.css -o public/tailwind.css
+          else
+            echo "Skipping Tailwind build, src/app/globals.css not found"
+          fi
+
+      - name: Build and test
         env:
           NEXT_PUBLIC_API_ENDPOINT: ${{ secrets.NEXT_PUBLIC_API_ENDPOINT }}
         run: |
-          npm install
           npm run build --if-present
           npm run test --if-present
 
@@ -63,7 +81,13 @@ jobs:
 
       - name: Unzip artifact for deployment
         run: unzip release.zip
-      
+
+      - name: Restart Azure Web App
+        run: az webapp restart --name tech0-gen-9-step3-1-node-29 --resource-group <RESOURCE_GROUP>
+
+      - name: Wait before deploy
+        run: sleep 30
+
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
@@ -72,5 +96,4 @@ jobs:
           slot-name: 'Production'
           package: ./deploy
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_8D474A4592054E5AA100CB304021EEEA }}
-
-
+          clean: true
